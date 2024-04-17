@@ -74,7 +74,6 @@ func (t *TCPTransport) ListenAndAccept() error {
 }
 
 func (t *TCPTransport) handleConn(conn net.Conn) {
-	// TODO: do something with the connection
 	var err error
 
 	defer func() {
@@ -82,7 +81,14 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 		conn.Close()
 	}()
 
-	// node := NewTCPNode(conn)
+	node := NewTCPNode(conn)
+
+	if t.OnNodeConnect != nil {
+		if err := t.OnNodeConnect(node); err != nil {
+			t.logger.Error("failed to perform on node connection action", slog.Any("error", err))
+			return
+		}
+	}
 
 	t.logger.Debug("handling connection from ", slog.String("address", conn.RemoteAddr().String()))
 	for {
